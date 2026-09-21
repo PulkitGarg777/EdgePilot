@@ -15,3 +15,10 @@
 - Reconciled the twelve-week roadmap and guardrail extension with actual code/evidence in [TASKS.md](TASKS.md).
 - Added explicit contract/architecture gaps, the open Week 2 decision gate, simulator/skills acceptance criteria, research baselines, and release tasks.
 - Prepared a source-only initial repository snapshot, change log, and GitHub task/PR templates. GitHub publication status is tracked under EP-001; do not infer remote publication from these files alone.
+
+## 21 September 2026 - Signed baseline published and actionable backlog
+
+- Repaired the existing GPG agent without disabling signing; a temporary-file signature verified successfully. The user's two commits, `91257bd` and `4985bc7`, both verified locally, and GitHub `main` matched `4985bc7` when checked.
+- Updated EP-001 to complete for the actual repository `PulkitGarg777/EdgePilot`. No version tag has been created; release/tag work is tracked under EP-022.
+- Expanded [TASKS.md](TASKS.md) into milestones with dependencies, completion criteria, and a research decision gate. Added [NEXT_STEPS.md](NEXT_STEPS.md) for contracts, deterministic scene state, guarded dispatch, scripted mission execution, and then real-model integration.
+- This update changes planning documents only. Runtime behavior and the recorded 50-test/six-episode evidence are unchanged; no new model tests or research experiments were performed for it.

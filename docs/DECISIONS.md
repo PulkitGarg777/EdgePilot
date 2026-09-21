@@ -19,3 +19,7 @@ The Word plan's `src/edgepilot/` tree and nanosecond contracts are proposed targ
 ## D005 — Research decision remains open (21 September 2026)
 
 The wait-only pilot establishes scheduler plumbing and some discarded-work observations. It does not establish plausible robot workload benefit, task success, cancellation feasibility, energy savings, novelty, or a positive Week 2 decision. Follow EP-008–EP-011 before committing to the proposed research policy. Build deterministic skills and conventional execution before attributing task-quality changes to scheduling.
+
+## D006 - Maintain one backlog and a bounded next milestone (21 September 2026)
+
+Use TASKS.md as the authoritative whole-project backlog and NEXT_STEPS.md as its ordered implementation checklist. Preserve EP IDs. The next engineering work proceeds from contracts to scene state, mandatory checks, conventional skill execution, and resident-model integration. The research evidence track can proceed alongside this bounded work, but its continue/narrow/pivot decision gates the advanced cancellation/candidate-policy build. The Word plan's twelve-week, 15-hours-per-week schedule is a planning assumption, not proof of progress or a newly confirmed deadline.

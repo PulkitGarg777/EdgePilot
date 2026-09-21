@@ -4,7 +4,7 @@ This wait-only scheduler plumbing experiment extends the verified `runtime_probe
 
 ## Project progress
 
-The [task tracker](docs/TASKS.md) reconciles the original [Word plan](EdgePilot_RT_Plan_of_Action.docx) with implemented code and measured evidence. Use its EP task IDs in commits and issues. The [decision log](docs/DECISIONS.md), [build log](docs/BUILD_LOG.md), and [changelog](CHANGELOG.md) record scope, progress, and versions. The broader simulator, guardrail, cancellation, and research evaluation milestones remain open.
+The [whole-project task tracker](docs/TASKS.md) reconciles the original [Word plan](EdgePilot_RT_Plan_of_Action.docx) with implemented code and measured evidence. Start with the [next milestone checklist](docs/NEXT_STEPS.md): versioned scene/action contracts, a deterministic scene, guarded skills, a scripted mission, and then resident-model integration. Use EP task IDs in signed commits and issues. The [decision log](docs/DECISIONS.md), [build log](docs/BUILD_LOG.md), and [changelog](CHANGELOG.md) record scope, progress, and versions. Cancellation and the broader research evaluation remain open and depend on an explicit feasibility decision.
 
 ## Run from PowerShell
 
