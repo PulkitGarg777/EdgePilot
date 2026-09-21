@@ -23,3 +23,11 @@ The wait-only pilot establishes scheduler plumbing and some discarded-work obser
 ## D006 - Maintain one backlog and a bounded next milestone (21 September 2026)
 
 Use TASKS.md as the authoritative whole-project backlog and NEXT_STEPS.md as its ordered implementation checklist. Preserve EP IDs. The next engineering work proceeds from contracts to scene state, mandatory checks, conventional skill execution, and resident-model integration. The research evidence track can proceed alongside this bounded work, but its continue/narrow/pivot decision gates the advanced cancellation/candidate-policy build. The Word plan's twelve-week, 15-hours-per-week schedule is a planning assumption, not proof of progress or a newly confirmed deadline.
+
+## D007 - Initial world uses a headless deterministic scene (21 September 2026)
+
+Implement home and two stations in a bounded 2D room with straight-line constant-speed motion, timed inspections, direct state snapshots, and serialized checks/dispatch. This is sufficient to exercise changing availability, goals, and skill preconditions without a physics/rendering dependency. Do not install MuJoCo yet; revisit it when collision/contact or physical dynamics are needed. Scripted planning first establishes executor correctness. These simulated checks do not demonstrate physical safety or model task quality.
+
+## D008 - Version simulation traces separately from the pilot (21 September 2026)
+
+New simulation traces use `edgepilot.simulation.v1` and episode-relative integer nanoseconds, with a virtual clock for deterministic tests and `perf_counter_ns` for wall-clock runs. Preserve existing pilot contracts, commands, and second-based traces without implicit migration. Plan provenance binds request, goal, and original snapshot; old snapshots remain acceptable when current preconditions hold. CPU validation timing is unmeasured and logged as null. The simulation's synthetic planner is not an HTTP adapter and supplies no cancellation evidence.

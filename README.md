@@ -1,12 +1,23 @@
 # EdgePilot scheduling pilot
 
-This wait-only scheduler plumbing experiment extends the verified `runtime_probe_v1` without changing it. It uses the existing Windows Python environment and resident llama.cpp server. It does not execute robot actions or implement inference cancellation.
+EdgePilot contains the verified wait-only scheduling pilot and an initial headless robot world with a scripted planner and guarded skills. The original `runtime_probe_v1` is preserved. Development uses the existing Windows Python environment on D:. The HTTP pilot uses the resident llama.cpp server; the scripted simulator does not require it. Neither component implements inference cancellation or controls a physical robot.
 
 ## Project progress
 
-The [whole-project task tracker](docs/TASKS.md) reconciles the original [Word plan](EdgePilot_RT_Plan_of_Action.docx) with implemented code and measured evidence. Start with the [next milestone checklist](docs/NEXT_STEPS.md): versioned scene/action contracts, a deterministic scene, guarded skills, a scripted mission, and then resident-model integration. Use EP task IDs in signed commits and issues. The [decision log](docs/DECISIONS.md), [build log](docs/BUILD_LOG.md), and [changelog](CHANGELOG.md) record scope, progress, and versions. Cancellation and the broader research evaluation remain open and depend on an explicit feasibility decision.
+The [whole-project task tracker](docs/TASKS.md) reconciles the original [Word plan](EdgePilot_RT_Plan_of_Action.docx) with implemented code and measured evidence. The [milestone checklist](docs/NEXT_STEPS.md) records the completed initial scene/guarded scripted mission and the remaining request-provenance and resident-model integration work. Use EP task IDs in signed commits and issues. The [decision log](docs/DECISIONS.md), [build log](docs/BUILD_LOG.md), and [changelog](CHANGELOG.md) record scope, progress, and versions. Cancellation and the broader research evaluation remain open and depend on an explicit feasibility decision.
 
-## Run from PowerShell
+## Run the simulated world
+
+```powershell
+Set-Location D:\EdgePilot
+.\.venv\Scripts\python.exe -m edgepilot.simulation --planner-delay 0.5
+```
+
+The scripted robot navigates to station A, inspects it, does the same at B, and returns home. Navigation and inspection take time; the executor checks current preconditions before dispatch and monitors active skills. The nominal demo completes in about five seconds and saves its state/event trace under `runs\sim-*`.
+
+Use `--clock virtual` for immediate deterministic replay. Try `--scenario station-unavailable` or `--scenario goal-replacement` for changes during execution. See [the simulation guide](docs/SIMULATION.md) for contracts, coordinates, commands, tests, and measured demo outcomes. This step uses scripted planning; real-model skill planning comes next.
+
+## Run the wait-only HTTP pilot from PowerShell
 
 The existing server must be healthy on `http://127.0.0.1:8080`, with alias `edgepilot`. Do not run paired episodes concurrently against its single slot.
 
