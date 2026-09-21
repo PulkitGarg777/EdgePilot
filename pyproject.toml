@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+testpaths = ["tests", "runtime_probe_v1"]
+pythonpath = [".", "runtime_probe_v1"]
+cache_dir = "D:/EdgePilot/cache/pytest"
