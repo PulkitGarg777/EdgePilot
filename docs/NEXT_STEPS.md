@@ -1,6 +1,6 @@
 # Next milestone: a deterministic, guarded simulated mission
 
-Parent roadmap: [TASKS.md](TASKS.md). The initial world and guarded scripted mission are implemented and tested; checked items below link to the evidence in [SIMULATION.md](SIMULATION.md). The remaining immediate work is model-request provenance followed by real-model integration. No real-model skill mission has been tested yet.
+Parent roadmap: [TASKS.md](TASKS.md). This milestone is implemented and tested. Scripted evidence is in [SIMULATION.md](SIMULATION.md); real-model integration, request provenance, paired policy results, and reproduction commands are in [LIVE_MISSIONS.md](LIVE_MISSIONS.md). The next immediate task is EP-008: repeated, counterbalanced paired trials with variability and task outcomes, before drawing policy conclusions from these integration samples.
 
 ## Outcome
 
@@ -15,7 +15,7 @@ Use the current Windows environment, pinned llama.cpp server/model, and D: stora
 - [x] Specify a minimal room with a home location and two named inspection stations; define robot position/busy state, station availability, inspected state, mission goal/version, and immutable observation snapshot identity.
 - [x] Write typed schemas for skill names/arguments, a bounded plan, result/decision/event records, and explicit terminal reason codes. Keep allowed actions small: `navigate_to`, `inspect`, `wait`, `return_home`.
 - [x] Write the timing protocol: monotonic clock origin, integer nanosecond fields versus existing seconds, scheduled versus delivered event times, and the order of updates, completion handling, validation, and dispatch. Choose and version the format before implementing it.
-- [ ] Add request provenance: snapshot/goal identity, model ID, stable prompt hash, output budget, optional deadline, and normalized response usage/timing. Define null values for unavailable metrics.
+- [x] Add request provenance: snapshot/goal identity, model ID, stable prompt hash, output budget, optional deadline, and normalized response usage/timing. Define null values for unavailable metrics.
 - [x] Define a compatibility path for current `pilot-*` traces and commands. Preserve their modules/seconds-based format, add a separate simulation schema, and test plan round trips, version identity, time ordering, and all existing pilot/probe tests. No legacy-trace conversion is introduced.
 
 **Exit:** a written protocol and tested contracts that support stateful skills without breaking the preserved probe. A directory reshuffle is not required. Suggested first commit: `EP-007: define versioned scene and action contracts`.
@@ -31,13 +31,13 @@ Use the current Windows environment, pinned llama.cpp server/model, and D: stora
 
 ### 3. Put mandatory checks before execution (EP-013)
 
-- [x] Reject malformed/incomplete action objects, undeclared skills, unknown targets, invalid argument types/ranges, and missing state. Generation truncation remains handled by the old pilot validator; the new simulator does not consume model output yet.
+- [x] Reject malformed/incomplete action objects, undeclared skills, unknown targets, invalid argument types/ranges, missing state, malformed response envelopes, and truncated generation. Live-model decoding is independently tested.
 - [x] Reject superseded request IDs/goals before installing a plan. An old snapshot alone must not invalidate an otherwise applicable action.
 - [x] Validate current preconditions at installation and immediately before dispatch; for example, inspection requires arrival at an available target.
 - [x] Make the final precondition/version check and skill dispatch atomic relative to scene updates by keeping ownership in one executor loop or an equivalent tested mechanism.
 - [x] Specify monitoring and stop behavior for a skill already in progress when its goal or required state changes. Distinguish stopping a conventional simulated skill from cancelling inference.
 - [x] Implement wait/stop fallback for the scripted executor and log snapshot, skill, outcome, refresh reason, and failed constraints.
-- [ ] Reuse the same fallback/checks across live scheduling policies and measure validation CPU duration; the initial simulation logs `validation_time_ns: null` explicitly.
+- [x] Reuse the same fallback/checks across live scheduling policies and measure validation CPU duration. Live traces also measure wall duration and count zero CPU samples; clock-granularity limitations are explicit. Scripted runs retain disabled profiling for determinism.
 
 **Exit:** tests exercise a state change between plan acceptance and dispatch, stale IDs/goals, unavailable targets, missing state, malformed output, and relevant changes during execution. No rejected action reaches the executor.
 
@@ -52,11 +52,11 @@ Use the current Windows environment, pinned llama.cpp server/model, and D: stora
 
 ### 5. Connect the existing model (EP-014)
 
-- [ ] Extend generation to the bounded skill-plan schema while keeping independent validation and execution preconditions.
-- [ ] Feed identical observed state, model settings, output budget, validator, and executor to FIFO and newest-pending policies. Keep stable prompt content separate from runtime timestamps.
-- [ ] Preserve raw requests/responses and separate planner validity failures, stale scheduling decisions, executor failures, and HTTP/infrastructure failures.
-- [ ] Run short real-model nominal and state-change episodes if the server is ready. Compare with the scripted baseline; record actual task outcomes and censored goals.
-- [ ] Document a Windows reproduction command and report separately what passed with fake workers and with the real model.
+- [x] Extend generation to the bounded skill-plan schema while keeping independent validation and execution preconditions.
+- [x] Share initial state, external scripts, model settings, output budget, validator, and executor between FIFO and newest-pending. Keep stable prompt content separate from runtime timestamps; log actual sampled states and acknowledge trajectory divergence.
+- [x] Preserve raw requests/responses and separate planner validity failures, stale scheduling decisions, executor failures, and HTTP/infrastructure failures.
+- [x] Run short real-model nominal and state-change episodes. Compare with the scripted baseline; record actual task outcomes and censored goals.
+- [x] Document Windows reproduction commands and report separately what passed with fake workers and with the real model.
 
 **Exit:** a real-model mission is evaluated through the same guarded executor with honest successes/failures; a valid JSON response is not enough. If the small model cannot complete the mission reliably, investigate that result without weakening checks.
 

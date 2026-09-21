@@ -31,16 +31,17 @@ def payload_for(request: Request) -> dict:
 
 class HttpWorker:
     def __init__(self, base_url: str, run_dir: Path, clock: Callable[[], float],
-                 socket_timeout: float = 10):
+                 socket_timeout: float = 10, payload_builder: Callable[[Request], dict] = payload_for):
         self.url = base_url.rstrip("/") + "/v1/chat/completions"
         self.run_dir, self.clock, self.socket_timeout = run_dir, clock, socket_timeout
+        self.payload_builder = payload_builder
         self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="edgepilot-http")
         self.future = None
 
     def submit(self, request: Request, now: float) -> None:
         if self.future is not None:
             raise RuntimeError("Worker is occupied until its HTTP call returns or fails")
-        payload = payload_for(request)
+        payload = self.payload_builder(request)
         (self.run_dir / f"{request.request_id}-request.json").write_text(
             json.dumps({"request": asdict(request), "url": self.url, "payload": payload}, indent=2), encoding="utf-8")
         self.future = self.pool.submit(self._invoke, request, payload)

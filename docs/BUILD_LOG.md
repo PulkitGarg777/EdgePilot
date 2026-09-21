@@ -30,3 +30,11 @@
 - Verification: 101 offline tests plus six subtests passed (51 new simulation tests, 50 existing pilot/probe tests). No model inference was invoked.
 - Six final scripted demos covered wall-clock nominal completion, virtual interruption/recovery, goal replacement during execution and delayed planning, irrelevant updates, and intentional blocked timeout. Source hashes, configurations, state traces, and results remain on D:. See [SIMULATION.md](SIMULATION.md) for run links and outcomes.
 - EP-012 is complete for the agreed initial headless scope. EP-007 remains partial (model request provenance/usage fields); EP-013 remains partial (validation overhead measurement and shared live-policy integration). EP-014 real-model skill planning has not started.
+
+## 21 September 2026 - Resident-model guarded missions
+
+- Completed typed live request provenance, schema-constrained skill generation with independent decoding/validation, FIFO/newest-pending scene coordination, shared guarded execution, request TTLs, bounded refreshes, deadline draining, and paired trace comparison. Reused the existing Windows environment and resident model; no installations or model changes.
+- Offline verification: 138 tests plus six subtests passed. Virtual clocks/fake workers and a synchronized local HTTP stub test state changes, malformed/truncated plans, scheduling, observation progress, deadlines, request provenance, and measurement. These tests do not invoke the model.
+- Separately exercised real-model nominal, temporary station loss, goal replacement, goal burst, and irrelevant-update missions. Both policies completed all five scenarios. Final matched-source run manifest and outcomes: [LIVE_MISSIONS.md](LIVE_MISSIONS.md). Earlier exploratory runs are retained on D:.
+- Added CPU and wall validation timing. Exploratory CPU samples were zero on Windows; explicit granularity caveats and separate elapsed measurements avoid treating this as zero-cost validation.
+- EP-007, EP-013, and EP-014 are complete for the initial headless scope. Next: repeated characterization (EP-008), related-work assessment (EP-009), and runtime cancellation feasibility (EP-010), feeding EP-011. No inference cancellation or statistical policy advantage is claimed.

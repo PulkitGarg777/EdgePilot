@@ -31,3 +31,11 @@ Implement home and two stations in a bounded 2D room with straight-line constant
 ## D008 - Version simulation traces separately from the pilot (21 September 2026)
 
 New simulation traces use `edgepilot.simulation.v1` and episode-relative integer nanoseconds, with a virtual clock for deterministic tests and `perf_counter_ns` for wall-clock runs. Preserve existing pilot contracts, commands, and second-based traces without implicit migration. Plan provenance binds request, goal, and original snapshot; old snapshots remain acceptable when current preconditions hold. CPU validation timing is unmeasured and logged as null. The simulation's synthetic planner is not an HTTP adapter and supplies no cancellation evidence.
+
+## D009 - Reuse guarded execution for real-model policies (21 September 2026)
+
+Add `edgepilot.mission.v1` and a bounded model adapter over the existing HTTP transport. Preserve the old pilot and scripted simulator. Both policies use the same admission rules, prompt/settings, independent checks, executor, and fallback. The client binds request/goal/snapshot identity; the model supplies actions only. Keep request identity/timestamps outside prompt text. Current-state checks remain mandatory even with constrained generation. Finite request budgets and optional TTLs bound retries without inventing cancellation.
+
+Run fixed external scripts through ordinary wall-clock execution. Goal latency measures accepted plans separately from completed missions; partial/wait-only acceptance is insufficient for success. Preserve superseded/censored goals and recovered failures. Shared scripts can yield different sampled states/trajectories. Single integration pairs are not the repeated characterization required by EP-008.
+
+Measure thread CPU and monotonic elapsed validation time separately. Windows zero CPU samples can be below clock granularity; retain zero counts and avoid claims of zero overhead. Wall duration includes scheduling/clock effects and excludes JSON decoding/logging. Broader overhead evaluation remains EP-020. Detailed evidence and limits: [LIVE_MISSIONS.md](LIVE_MISSIONS.md).

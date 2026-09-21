@@ -2,6 +2,8 @@
 
 This is a headless, deterministic 2D simulator and conventional skill executor. The planner is a small scripted function, optionally delayed by a controllable clock. It does not call the model. The existing FIFO/newest-pending HTTP pilot remains available unchanged.
 
+The same world now also supports resident-model planning through a separate command; see [LIVE_MISSIONS.md](LIVE_MISSIONS.md). The scripted results below remain no-model evidence.
+
 ## Run it
 
 From PowerShell in `D:\EdgePilot`:

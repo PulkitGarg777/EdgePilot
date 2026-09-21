@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-Adds a deterministic headless 2D station world, immutable state/action contracts, bounded skill plans, independent installation/dispatch checks, current-state monitoring, and a conventional executor. Scripted missions inspect two stations and return home; external scripts exercise goal replacement, target unavailability, and irrelevant updates. Includes virtual/wall-clock runners, versioned nanosecond traces on D:, and 51 offline tests. Real-model skill planning and inference cancellation remain unimplemented. The existing wait-only probe and scheduling pilot are unchanged.
+Adds a deterministic headless 2D station world, immutable state/action contracts, bounded skill plans, independent installation/dispatch checks, current-state monitoring, and a conventional executor. Scripted and real-model missions inspect stations and return home; external scripts exercise goal replacement, target unavailability, and irrelevant updates.
+
+Connects the existing resident model through FIFO/newest-pending scheduling with typed request provenance, stable prompt hashes, constrained output and independent validation, optional request expiry, deadline draining, and raw/event traces. Adds live-mission commands and paired comparison, CPU/wall validation measurements with clock-granularity caveats, and separately recorded mock versus real-model evidence in [LIVE_MISSIONS.md](docs/LIVE_MISSIONS.md). The existing probe and wait-only commands remain compatible. Inference cancellation remains unimplemented.
 
 ## 0.1.0 — 2026-09-21
 

@@ -25,8 +25,17 @@ class World:
     speed = 2.0  # Abstract room units / second; no acceleration or obstacles.
     inspection_ns = NS // 2
 
-    def __init__(self, emit: Callable[..., None] | None = None):
+    def __init__(self, emit: Callable[..., None] | None = None,
+                 validation_clock: Callable[[], int] | None = None,
+                 validation_wall_clock: Callable[[], int] | None = None):
         self.emit = emit or (lambda **event: None)
+        self.validation_clock = validation_clock
+        self.validation_wall_clock = validation_wall_clock
+        self.validation_cpu_samples_ns: list[int] = []
+        self.validation_wall_samples_ns: list[int] = []
+        self.last_validation_ns: int | None = None
+        self.last_validation_wall_ns: int | None = None
+        self.last_validation: Validation | None = None
         self.now_ns = 0
         self.snapshot_id = 0
         self.position = HOME
@@ -54,14 +63,28 @@ class World:
     def log(self, event: str, **fields):
         self.emit(event=event, at_ns=self.now_ns, goal_version=self.mission.version, **fields)
 
+    def _validate(self, check: Callable[[], Validation]) -> Validation:
+        started = self.validation_clock() if self.validation_clock else None
+        wall_started = self.validation_wall_clock() if self.validation_wall_clock else None
+        result = check()
+        self.last_validation_wall_ns = self.validation_wall_clock()-wall_started if wall_started is not None else None
+        self.last_validation_ns = self.validation_clock()-started if started is not None else None
+        if self.last_validation_ns is not None:
+            self.validation_cpu_samples_ns.append(self.last_validation_ns)
+        if self.last_validation_wall_ns is not None:
+            self.validation_wall_samples_ns.append(self.last_validation_wall_ns)
+        return result
+
     def _validation_log(self, check: Validation, phase: str, plan: Plan | None, action: Action | None = None,
                         checked_snapshot_id: int | None = None):
+        self.last_validation = check
         self.log("validation", phase=phase,
                  checked_snapshot_id=self.snapshot_id if checked_snapshot_id is None else checked_snapshot_id,
                  request_id=plan.request_id if plan else None,
                  skill=action.skill if action else None, accepted=check.accepted,
                  reason_code=check.reason, failed_constraints=[] if check.accepted else [check.detail],
-                 validation_time_ns=None)  # CPU overhead profiling is separate future work.
+                 validation_time_ns=self.last_validation_ns,
+                 validation_wall_ns=self.last_validation_wall_ns)
         if not check.accepted:
             self.validation_rejections += 1
 
@@ -82,13 +105,19 @@ class World:
         self.plan = None
         self.fallback(reason)
 
-    def expect(self, request_id: str):
+    def expect(self, request_id: str, snapshot_id: int | None = None):
         if not isinstance(request_id, str) or not request_id.strip():
             raise ValueError("Request ID must not be blank")
+        if snapshot_id is not None:
+            integer(snapshot_id, "request snapshot ID")
+            if snapshot_id > self.snapshot_id:
+                raise ValueError("Cannot expect a future snapshot")
         self.expected_request_id = request_id
-        self.expected_snapshot_id = self.snapshot_id
+        self.expected_snapshot_id = self.snapshot_id if snapshot_id is None else snapshot_id
 
     def install(self, value: Plan | dict) -> bool:
+        self.last_validation_ns = None
+        self.last_validation_wall_ns = None
         try:
             plan = value if isinstance(value, Plan) else Plan.from_dict(value)
         except (ValueError, TypeError, KeyError) as exc:
@@ -96,8 +125,8 @@ class World:
             if self.active is None and not self.pending:
                 self.fallback(Reason.MALFORMED)
             return False
-        check = (Validation(False, Reason.FINISHED) if self.outcome != "running" else
-                 validate_plan(plan, self.snapshot(), self.expected_request_id, self.expected_snapshot_id))
+        check = self._validate(lambda: Validation(False, Reason.FINISHED) if self.outcome != "running" else
+                               validate_plan(plan, self.snapshot(), self.expected_request_id, self.expected_snapshot_id))
         self._validation_log(check, "install", plan)
         if not check.accepted:
             if self.active is None and not self.pending:
@@ -126,7 +155,8 @@ class World:
             self.mission_records.append(record)
             self.log("mission_succeeded", position=asdict(self.position), inspected=sorted(self.inspected))
 
-    def advance(self, now_ns: int, events: tuple[WorldEvent, ...] = (), *, deadline: bool = False):
+    def advance(self, now_ns: int, events: tuple[WorldEvent, ...] = (), *, deadline: bool = False,
+                complete_skills: bool = True):
         integer(now_ns, "clock")
         if now_ns < self.now_ns:
             raise ValueError("Clock cannot go backwards")
@@ -168,11 +198,11 @@ class World:
                 self.outcome = "running"
                 self.last_fallback = None
         if self.active:
-            check = validate_action(self.active.action, self.snapshot())
+            check = self._validate(lambda: validate_action(self.active.action, self.snapshot()))
             if not check.accepted:
                 self._validation_log(check, "monitor", self.plan, self.active.action)
                 self._clear_plan(check.reason)
-            elif now_ns >= self.active.finishes_at_ns:
+            elif complete_skills and now_ns >= self.active.finishes_at_ns:
                 action = self.active.action
                 if action.skill == Skill.INSPECT:
                     self.inspected.add(action.target)
@@ -181,15 +211,16 @@ class World:
                 self.active = None
                 self.snapshot_id += 1
                 self.actions_completed += 1
-        self._check_success()
+        if complete_skills:
+            self._check_success()
 
     def dispatch(self) -> bool:
         if self.outcome != "running" or self.active or not self.pending:
             return False
         action = self.pending[0]
         checked_snapshot_id = self.snapshot_id
-        check = (Validation(False, Reason.STALE_GOAL) if self.plan.goal_version != self.mission.version else
-                 validate_action(action, self.snapshot()))
+        check = self._validate(lambda: Validation(False, Reason.STALE_GOAL)
+                               if self.plan.goal_version != self.mission.version else validate_action(action, self.snapshot()))
         if not check.accepted:
             self._validation_log(check, "dispatch", self.plan, action)
             self._clear_plan(check.reason)
