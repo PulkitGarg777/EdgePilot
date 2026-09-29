@@ -6,6 +6,8 @@ Adds a deterministic headless 2D station world, immutable state/action contracts
 
 Connects the existing resident model through FIFO/newest-pending scheduling with typed request provenance, stable prompt hashes, constrained output and independent validation, optional request expiry, deadline draining, and raw/event traces. Adds live-mission commands and paired comparison, CPU/wall validation measurements with clock-granularity caveats, and separately recorded mock versus real-model evidence in [LIVE_MISSIONS.md](docs/LIVE_MISSIONS.md). The existing probe and wait-only commands remain compatible. Inference cancellation remains unimplemented.
 
+Adds repeatable live-model characterization with a predeclared batch manifest, counterbalanced policy order, rotated scenarios, fail-closed execution, trace-integrity checks, and deterministic metric/report regeneration. The first development batch recorded all 40 planned episodes across five scenarios; its descriptive results and telemetry limitations are documented without claiming inference cancellation, energy savings, or a general policy advantage.
+
 ## 0.1.0 — 2026-09-21
 
 First wait-only scheduling pilot. Adds typed versioned contracts, FIFO and newest-pending policies, deterministic scenarios, background HTTP inference, shared validation and fallback, deadline draining, event/raw-response logging, per-goal censoring, and comparison reports. Includes offline mock/stub tests and separately documented real-model integration evidence.

@@ -1,6 +1,6 @@
 # Next milestone: a deterministic, guarded simulated mission
 
-Parent roadmap: [TASKS.md](TASKS.md). This milestone is implemented and tested. Scripted evidence is in [SIMULATION.md](SIMULATION.md); real-model integration, request provenance, paired policy results, and reproduction commands are in [LIVE_MISSIONS.md](LIVE_MISSIONS.md). The next immediate task is EP-008: repeated, counterbalanced paired trials with variability and task outcomes, before drawing policy conclusions from these integration samples.
+Parent roadmap: [TASKS.md](TASKS.md). This milestone and the subsequent EP-008 repeated characterization are implemented and tested. Scripted evidence is in [SIMULATION.md](SIMULATION.md); real-model integration, counterbalanced paired results, and reproduction commands are in [LIVE_MISSIONS.md](LIVE_MISSIONS.md). The next research inputs are EP-009 related work and EP-010 cancellation feasibility, which together with EP-008 feed the EP-011 decision.
 
 ## Outcome
 
@@ -64,7 +64,7 @@ Use the current Windows environment, pinned llama.cpp server/model, and D: stora
 
 | Task | Concrete next artifact | Decision it informs |
 | --- | --- | --- |
-| EP-008 | Repeated, counterbalanced paired-run manifest and characterization report | Whether discarded work and response delays are repeatable |
+| EP-008 (complete) | Repeated, counterbalanced paired-run manifest and characterization report | Burst-work coalescing was repeatable in these development samples; broader policy claims remain unsupported |
 | EP-009 | Closest-work matrix and one-page overlap assessment | Whether there is a distinct research question |
 | EP-010 | Pinned-runtime cancellation feasibility record with measured terminal acknowledgement or an explicit unsupported result | Whether a cancellation policy is technically justified |
 | EP-011 | Continue/narrow/pivot memo drawing on the above, with bounded claims if scene evidence is not yet ready | Whether to proceed to the advanced policy or focus on characterization/relevance |

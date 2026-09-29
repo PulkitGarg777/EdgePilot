@@ -89,6 +89,29 @@ The scripted nominal executor took about five seconds including its configured 0
 
 Observations continued during inference. Maximum observation gap across these runs was 56.875 ms against a 50 ms target. Per-run p95 validator wall duration ranged from 51.6 to 63.7 microseconds; all short CPU samples were zero at the available clock granularity. These are measured elapsed checks, not a CPU-overhead conclusion. State/goal updates in these real runs occurred before skill dispatch; interruption during execution is covered by the deterministic tests and earlier scripted demos, not these ten runs.
 
+## Repeated characterization, 29 September 2026
+
+Run the counterbalanced development protocol against a healthy resident server:
+
+```powershell
+Set-Location D:\EdgePilot
+.\.venv\Scripts\python.exe -m edgepilot.characterize --repetitions 4
+```
+
+This prewrites a manifest and sequentially runs four FIFO/newest-pending pairs for each of the five non-blocked scenarios (40 episodes). Policy-first order alternates within every scenario and scenario order rotates. The runner preserves stdout/stderr, hashes each trace, rejects source/model/configuration drift, stops on uncertain transport state, and regenerates `report.json` and `report.md` from recorded traces. Regenerate without inference using `python -m edgepilot.characterize --report <manifest.json>`.
+
+The local batch `runs/characterization-20260929-134649-4908f29f` completed all 40 episodes: every mission succeeded, no attempt failed, and no pair was excluded. Deterministic regeneration passed all integrity/comparison checks and reproduced byte-identical reports. Focused offline verification passed 49 tests.
+
+| Scenario | FIFO median elapsed (s) | Newest median elapsed (s) | Mean paired delta (newest - FIFO), range (s) |
+| --- | ---: | ---: | ---: |
+| nominal | 5.656 | 5.645 | -0.017 [-0.101, 0.055] |
+| station-unavailable | 6.949 | 6.955 | 0.022 [-0.000, 0.042] |
+| goal-replacement | 5.278 | 5.273 | -0.037 [-0.250, 0.112] |
+| goal-burst | 8.113 | 6.626 | -1.462 [-1.563, -1.368] |
+| irrelevant | 5.629 | 5.635 | 0.012 [-0.000, 0.042] |
+
+In goal-burst, FIFO rejected 12 stale results across four runs; newest-pending rejected four and coalesced eight requests before inference. That mechanism and elapsed difference repeated in these samples. The other scenarios had small, mixed differences. These are four dependent development pairs per scenario from one warm resident server: report descriptive ranges only, with no confidence interval, held-out inference, or general speedup claim. Null goal latencies remain separate from accepted latencies. Background load, RAM/VRAM, GPU compute, and energy were not measured; HTTP elapsed time is a wall-time proxy. Rendering remained headless and no inference cancellation occurred.
+
 ### Local run manifest
 
 Paths are local, ignored raw traces on D:; repository readers need a separately shared trace bundle to open them. The pairs share measured runtime source hashes; a later comparison-output table-format fix does not change the recorded runtime results. These paths allow regenerating comparisons without mixing exploratory source versions.
@@ -105,6 +128,6 @@ Six exploratory episodes are retained separately: `033407-fifo-nominal-7eb49a4a`
 
 ## Immediate next work and user input
 
-EP-008 is next: automate repeated, counterbalanced pairs, preserve a run manifest, and report mission success, censored goals, response-time variability, and observation gaps together. EP-009 reviews verified primary literature; EP-010 investigates cancellation feasibility before any production cancellation work. No extra hardware, data, installation, or user research is required to start these tasks.
+EP-008 is complete for development characterization. EP-009 now reviews verified primary literature, and EP-010 investigates cancellation feasibility before any production cancellation work. Their results, together with EP-008, feed the EP-011 continue/narrow/pivot decision. No extra hardware, data, installation, or user research is required to start EP-009 or the initial EP-010 interface investigation.
 
 Before a held-out research evaluation, agree on a target application and acceptable task-success/latency tradeoffs with the user or project supervisor. A fixed delivery date, required demonstration hardware, or faculty rubric would affect prioritization if one exists; none is assumed. Keep the initial station mission until evidence warrants expanding it.

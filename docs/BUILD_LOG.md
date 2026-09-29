@@ -38,3 +38,11 @@
 - Separately exercised real-model nominal, temporary station loss, goal replacement, goal burst, and irrelevant-update missions. Both policies completed all five scenarios. Final matched-source run manifest and outcomes: [LIVE_MISSIONS.md](LIVE_MISSIONS.md). Earlier exploratory runs are retained on D:.
 - Added CPU and wall validation timing. Exploratory CPU samples were zero on Windows; explicit granularity caveats and separate elapsed measurements avoid treating this as zero-cost validation.
 - EP-007, EP-013, and EP-014 are complete for the initial headless scope. Next: repeated characterization (EP-008), related-work assessment (EP-009), and runtime cancellation feasibility (EP-010), feeding EP-011. No inference cancellation or statistical policy advantage is claimed.
+
+## 29 September 2026 - Repeated paired characterization
+
+- Added `edgepilot.characterize`, a sequential real-model batch runner with a complete pre-run manifest, counterbalanced policy order, rotated scenario order, fail-closed infrastructure handling, source/model/configuration checks, trace hashes, and deterministic JSON/Markdown report regeneration.
+- Added focused offline coverage for scheduling balance, paired metrics, null/censored goals, mission and transport failures, unattempted denominators, startup errors, trace tampering, configuration drift, and small-sample statistics. Verification: 49 focused tests passed.
+- Recorded 40/40 planned episodes: four FIFO/newest-pending pairs for each of nominal, station-unavailable, goal-replacement, goal-burst, and irrelevant. All missions succeeded; no trial or pair was excluded. Batch: `runs/characterization-20260929-134649-4908f29f` (local ignored evidence).
+- Deterministic regeneration revalidated every recorded trace hash and comparison constraint and reproduced byte-identical `report.json` and `report.md` files. The goal-burst elapsed difference was repeatable across all four pairs (newest-pending minus FIFO mean -1.462 s, range -1.563 to -1.368 s); other scenario differences were small and mixed.
+- EP-008 is complete for development characterization. Results are descriptive dependent samples, not a held-out evaluation or general speedup claim. Background load, RAM/VRAM, GPU compute, and energy were not measured; HTTP wall time is only a proxy. No inference cancellation is implemented.
