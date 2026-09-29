@@ -128,6 +128,6 @@ Six exploratory episodes are retained separately: `033407-fifo-nominal-7eb49a4a`
 
 ## Immediate next work and user input
 
-EP-008 is complete for development characterization. EP-009 now reviews verified primary literature, and EP-010 investigates cancellation feasibility before any production cancellation work. Their results, together with EP-008, feed the EP-011 continue/narrow/pivot decision. No extra hardware, data, installation, or user research is required to start EP-009 or the initial EP-010 interface investigation.
+EP-008 characterization and the EP-009 [related-work review](RELATED_WORK.md) are complete. EP-010 now investigates cancellation feasibility before any production cancellation work. Its result, together with the [overlap assessment](RESEARCH_OVERLAP.md), feeds the EP-011 continue/narrow/pivot decision. No extra hardware, data, installation, or user research is required to start the initial EP-010 interface investigation.
 
 Before a held-out research evaluation, agree on a target application and acceptable task-success/latency tradeoffs with the user or project supervisor. A fixed delivery date, required demonstration hardware, or faculty rubric would affect prioritization if one exists; none is assumed. Keep the initial station mission until evidence warrants expanding it.

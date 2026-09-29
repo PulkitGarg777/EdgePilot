@@ -46,3 +46,10 @@
 - Recorded 40/40 planned episodes: four FIFO/newest-pending pairs for each of nominal, station-unavailable, goal-replacement, goal-burst, and irrelevant. All missions succeeded; no trial or pair was excluded. Batch: `runs/characterization-20260929-134649-4908f29f` (local ignored evidence).
 - Deterministic regeneration revalidated every recorded trace hash and comparison constraint and reproduced byte-identical `report.json` and `report.md` files. The goal-burst elapsed difference was repeatable across all four pairs (newest-pending minus FIFO mean -1.462 s, range -1.563 to -1.368 s); other scenario differences were small and mixed.
 - EP-008 is complete for development characterization. Results are descriptive dependent samples, not a held-out evaluation or general speedup claim. Background load, RAM/VRAM, GPU compute, and energy were not measured; HTTP wall time is only a proxy. No inference cancellation is implemented.
+
+## 29 September 2026 - Bounded related-work review
+
+- Verified and compared the roadmap's primary sources for CoMuRoS, VLASH, FutureRTC, RTGen scheduling, ActionFlow, SafePlan, SENTINEL, SayCan, MELTing Point, Sarathi-Serve, and Age of Information. Added a targeted service-age preemption paper because it directly bounds the proposed remaining-time-aware policy.
+- Added [RELATED_WORK.md](RELATED_WORK.md), recording mechanisms, assumptions, hardware, baselines, limitations, and project overlap, plus [RESEARCH_OVERLAP.md](RESEARCH_OVERLAP.md), which states the narrower useful-work versus stop/restart-cost hypothesis and the evidence needed to test it.
+- EP-009 is complete for the roadmap's bounded corpus. The review finds prior art for event relevance, newest-update replacement, service-time-aware preemption, guarded skill planning, asynchronous robot control, and inference optimization. It does not establish novelty or an affirmative EP-011 decision.
+- Next: EP-010 must establish actual cancellation acknowledgement and worker reuse—or document that the pinned interface cannot do so—before EP-011 decides whether to continue, narrow, or pivot.

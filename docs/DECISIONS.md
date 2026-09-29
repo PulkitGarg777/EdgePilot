@@ -39,3 +39,9 @@ Add `edgepilot.mission.v1` and a bounded model adapter over the existing HTTP tr
 Run fixed external scripts through ordinary wall-clock execution. Goal latency measures accepted plans separately from completed missions; partial/wait-only acceptance is insufficient for success. Preserve superseded/censored goals and recovered failures. Shared scripts can yield different sampled states/trajectories. Single integration pairs are not the repeated characterization required by EP-008.
 
 Measure thread CPU and monotonic elapsed validation time separately. Windows zero CPU samples can be below clock granularity; retain zero counts and avoid claims of zero overhead. Wall duration includes scheduling/clock effects and excludes JSON decoding/logging. Broader overhead evaluation remains EP-020. Detailed evidence and limits: [LIVE_MISSIONS.md](LIVE_MISSIONS.md).
+
+## D010 - Keep the candidate-policy claim narrow after related-work review (29 September 2026)
+
+Treat event-triggered replanning, newest-pending replacement, elapsed-time cancellation thresholds, bounded skill grounding, and generic action guardrails as established mechanisms rather than EdgePilot contributions. The remaining research hypothesis combines declared plan applicability with uncertain residual service time and measured stop/restart cost in a guarded local planner. Already-spent computation is a sunk cost; decisions use future utility and cost.
+
+This hypothesis is not a novelty finding. Complete EP-010 and the EP-011 continue/narrow/pivot memo before candidate-policy implementation. Require strong simple controls, including newest-pending, task-aware stopping, age/service thresholds, and a symbolic planner for the fixed mission. Expand the literature search around value-of-information scheduling, metareasoning, and task-aware preemption before any publication-level novelty claim. Evidence: [related-work matrix](RELATED_WORK.md) and [overlap assessment](RESEARCH_OVERLAP.md).

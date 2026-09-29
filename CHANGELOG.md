@@ -8,6 +8,8 @@ Connects the existing resident model through FIFO/newest-pending scheduling with
 
 Adds repeatable live-model characterization with a predeclared batch manifest, counterbalanced policy order, rotated scenarios, fail-closed execution, trace-integrity checks, and deterministic metric/report regeneration. The first development batch recorded all 40 planned episodes across five scenarios; its descriptive results and telemetry limitations are documented without claiming inference cancellation, energy savings, or a general policy advantage.
 
+Adds a primary-source related-work matrix and overlap assessment covering the roadmap's scheduling, robotics, guardrail, serving, and measurement references. Narrows the proposed research question to the future utility of unfinished planning versus measured stop/restart cost; novelty and the continue/narrow/pivot decision remain open pending cancellation feasibility.
+
 ## 0.1.0 — 2026-09-21
 
 First wait-only scheduling pilot. Adds typed versioned contracts, FIFO and newest-pending policies, deterministic scenarios, background HTTP inference, shared validation and fallback, deadline draining, event/raw-response logging, per-goal censoring, and comparison reports. Includes offline mock/stub tests and separately documented real-model integration evidence.
