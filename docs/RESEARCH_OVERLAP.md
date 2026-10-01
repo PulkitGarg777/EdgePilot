@@ -1,6 +1,6 @@
 # EP-009 overlap assessment
 
-29 September 2026. Research judgment based on the [primary-source matrix](RELATED_WORK.md); an input to EP-011, whose cancellation-feasibility input remains open.
+29 September 2026, updated 1 October 2026. Research judgment based on the [primary-source matrix](RELATED_WORK.md); an input to EP-011 alongside the completed [cancellation-feasibility record](CANCELLATION_PROBE_PLAN.md).
 
 ## What the existing work establishes
 
@@ -18,7 +18,7 @@ Two cases must be separated. If the active result is guaranteed unusable after a
 
 ## Evidence needed before building the candidate
 
-- **EP-010:** measure actual stopped computation, terminal acknowledgement, worker reuse, and stop/restart delays. An unsupported interface can justify a noncancelling scope.
+- **EP-010 (complete):** streaming generation produced task-scoped cancellation/release/idle and verified reuse in 8/8 development trials; non-streaming cancelled 0/8 and ran naturally to the output limit. Prompt-phase compute acknowledgement remains unresolved.
 - **EP-015/017, subject to the roadmap gate:** represent harmless, invalidating, and accommodating changes from declared information; compare newest-pending, task-aware stop, and tuned age/service-threshold rules. A symbolic planner is necessary for this small fully specified world. Treat additional threshold controls as a proposal for EP-011, not an implemented baseline.
 - **EP-018/019/020:** demonstrate headroom over the strongest simple controls before freezing a candidate. Predeclare success tolerance; include early/late changes, slow/fast inference, bursts and quiet periods. Ablate relevance, cost estimates, and coalescing separately. Avoid future events, unfinished-plan contents, or oracle remaining time as deployable inputs.
 - Report completed missions, refusal/failure, useful-response latency, censored goals, and scheduler/validator overhead together. Measure resource contention explicitly if claiming resource-aware behavior. Preserve EP-008's telemetry limitations.

@@ -1,6 +1,6 @@
 # Next milestone: a deterministic, guarded simulated mission
 
-Parent roadmap: [TASKS.md](TASKS.md). This milestone, EP-008 repeated characterization, and the EP-009 [related-work review](RELATED_WORK.md) are complete. Scripted evidence is in [SIMULATION.md](SIMULATION.md); real-model integration, counterbalanced paired results, and reproduction commands are in [LIVE_MISSIONS.md](LIVE_MISSIONS.md). The next research input is EP-010 cancellation feasibility, after which EP-011 can make the continue/narrow/pivot decision.
+Parent roadmap: [TASKS.md](TASKS.md). This milestone, EP-008 repeated characterization, the EP-009 [related-work review](RELATED_WORK.md), and the EP-010 [cancellation feasibility probe](CANCELLATION_PROBE_PLAN.md) are complete. Scripted evidence is in [SIMULATION.md](SIMULATION.md); real-model integration, counterbalanced paired results, and reproduction commands are in [LIVE_MISSIONS.md](LIVE_MISSIONS.md). The next research task is the EP-011 continue/narrow/pivot decision.
 
 ## Outcome
 
@@ -66,7 +66,7 @@ Use the current Windows environment, pinned llama.cpp server/model, and D: stora
 | --- | --- | --- |
 | EP-008 (complete) | Repeated, counterbalanced paired-run manifest and characterization report | Burst-work coalescing was repeatable in these development samples; broader policy claims remain unsupported |
 | EP-009 (complete) | [Closest-work matrix](RELATED_WORK.md) and [overlap assessment](RESEARCH_OVERLAP.md) | A narrower useful-work/cost hypothesis is plausible, but novelty is not established |
-| EP-010 | Pinned-runtime cancellation feasibility record with measured terminal acknowledgement or an explicit unsupported result | Whether a cancellation policy is technically justified |
+| EP-010 (complete) | [Pinned-runtime cancellation feasibility record](CANCELLATION_PROBE_PLAN.md): streaming generation supported; non-streaming unsupported; prompt phase unresolved | A future adapter must use the verified streaming path and retain phase-specific acknowledgement |
 | EP-011 | Continue/narrow/pivot memo drawing on the above, with bounded claims if scene evidence is not yet ready | Whether to proceed to the advanced policy or focus on characterization/relevance |
 
 These are independent work items, not an instruction to spawn agents or contact external people. The cancellation feasibility experiment may investigate stop behavior; production inference cancellation remains absent until EP-016 is implemented and verified.
