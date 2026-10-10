@@ -114,6 +114,12 @@ class ModelResult:
     server_state_uncertain: bool = False
     prompt_tokens: int | None = None
     completion_tokens: int | None = None
+    termination: str | None = None
+    terminal_observed_at_ns: int | None = None
+    occupied_ns: int | None = None
+    session_id: str | None = None
+    server_task_id: int | None = None
+    evidence_ref: str | None = None
 
 
 class ModelWorker(Protocol):

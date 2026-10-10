@@ -8,7 +8,7 @@ Final batch: `runs/cancellation-trials-20260930-125525-12c1ac56` (local ignored 
 
 Streaming disconnect during confirmed generation produced a matching task-scoped cancel event, release on the audited synchronized generation path, an idle slot observation, and verified reuse in 8/8 trials. Median observed stop-to-release was 46 ms at the 64-token cutpoint and 35 ms at 256 tokens. Median paired avoided remaining time was 3.701 s and 2.168 s respectively.
 
-Non-streaming disconnect produced no cancel event in 0/8 trials. Every request continued naturally to the 512-token limit before release and reuse. Median paired avoided remaining time was -0.024 s at 64 tokens and -0.025 s at 256 tokens, so this path supplies no useful cancellation mechanism in the tested build.
+Non-streaming disconnect produced a cancel event in 0/8 trials. Every request continued naturally to the 512-token limit before release and reuse. Median paired avoided remaining time was -0.024 s at 64 tokens and -0.025 s at 256 tokens, so this path supplies no useful cancellation mechanism in the tested build.
 
 These are four dependent development pairs per mode/cutpoint on one build, model, GPU, and process. Client observation times include polling, transport, log-flush, and observer delay. The result does not establish prompt-phase compute completion, arbitrary GPU kernel preemption, energy savings, tail guarantees, or cross-configuration support. The trial manifest did not snapshot the exact runner source hash; same-process calibration pins the executable, implementation DLL, model, and server PID, and the final report records the source-provenance limitation.
 
@@ -116,4 +116,4 @@ Report feasibility separately for streaming generation, non-streaming generation
 
 EP-010 closed after recording both a supported streaming-generation result and an unsupported non-streaming result. EP-011 must retain this phase/transport restriction: generation-only support cannot become an all-phase cancellation claim. An instrumented native/server barrier is a separately scoped follow-up if required; it must not be silently introduced into these binary-matched trials.
 
-Handoff: use this measured boundary in EP-011. If the decision permits EP-016, implement only the verified streaming-generation path first, preserve the exact task-scoped acknowledgement chain, and keep unsupported phases noncancelling. Tracker and result documentation were completed on LOW after evidence interpretation.
+Handoff: the completed [EP-011 decision](RESEARCH_DECISION.md) permits EP-016 within this measured boundary. Implement only the verified streaming-generation path first, preserve the exact task-scoped acknowledgement chain, and keep unsupported phases noncancelling. Tracker and result documentation were completed on LOW after evidence interpretation.

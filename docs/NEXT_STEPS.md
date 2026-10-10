@@ -1,8 +1,14 @@
-# Next milestone: a deterministic, guarded simulated mission
+# Next milestone: declared relevance and scheduling baselines
 
-Parent roadmap: [TASKS.md](TASKS.md). This milestone, EP-008 repeated characterization, the EP-009 [related-work review](RELATED_WORK.md), and the EP-010 [cancellation feasibility probe](CANCELLATION_PROBE_PLAN.md) are complete. Scripted evidence is in [SIMULATION.md](SIMULATION.md); real-model integration, counterbalanced paired results, and reproduction commands are in [LIVE_MISSIONS.md](LIVE_MISSIONS.md). The next research task is the EP-011 continue/narrow/pivot decision.
+Parent roadmap: [TASKS.md](TASKS.md). The initial simulated mission and EP-008 through EP-016 are complete. The [research decision](RESEARCH_DECISION.md) is **narrow and continue**. EP-017 strong simple baselines are next. Candidate work remains subject to the memo's evidence gates.
 
-## Outcome
+EP-015 delivered a tested, inspectable relevance contract. EP-016 delivered an explicitly owned single-slot streaming session, strict terminal evidence, a generation-only controlled stop, and verified same-session reuse. Goal-version rejection and current-state checks remain authoritative. Prompt-phase stops remain unsupported and the ordinary mission path remains noncancelling.
+
+The [EP-016 record](STREAMING_ADAPTER.md) contains the architecture, implementation boundaries, failure-closed diagnostic run, and successful live acknowledgement/reuse control. Begin EP-017 with strong simple baselines and shared evaluation inputs before considering EP-018.
+
+The completed scene checklist below is retained as the implementation record. Scripted evidence is in [SIMULATION.md](SIMULATION.md); real-model integration, counterbalanced results, and reproduction commands are in [LIVE_MISSIONS.md](LIVE_MISSIONS.md).
+
+## Completed scene milestone: outcome
 
 One simulated robot completes a small station-inspection mission and returns home using declared skills and a conventional executor. Scene time keeps advancing while planning is delayed. Goal replacement, unavailable stations, and invalid plans produce logged rejection/refresh/wait or controlled-stop behavior. First establish this without a model, then connect the existing resident model.
 
@@ -67,9 +73,10 @@ Use the current Windows environment, pinned llama.cpp server/model, and D: stora
 | EP-008 (complete) | Repeated, counterbalanced paired-run manifest and characterization report | Burst-work coalescing was repeatable in these development samples; broader policy claims remain unsupported |
 | EP-009 (complete) | [Closest-work matrix](RELATED_WORK.md) and [overlap assessment](RESEARCH_OVERLAP.md) | A narrower useful-work/cost hypothesis is plausible, but novelty is not established |
 | EP-010 (complete) | [Pinned-runtime cancellation feasibility record](CANCELLATION_PROBE_PLAN.md): streaming generation supported; non-streaming unsupported; prompt phase unresolved | A future adapter must use the verified streaming path and retain phase-specific acknowledgement |
-| EP-011 | Continue/narrow/pivot memo drawing on the above, with bounded claims if scene evidence is not yet ready | Whether to proceed to the advanced policy or focus on characterization/relevance |
+| EP-011 (complete) | [Narrow-and-continue memo](RESEARCH_DECISION.md) with candidate and pivot gates | Proceed through EP-015 to EP-017; assess baseline tradeoffs before a candidate |
+| EP-016 (complete) | [Owned acknowledged streaming adapter](STREAMING_ADAPTER.md) with offline race coverage and a live goal-replacement cancellation/reuse control | Generation-phase cooperative cancellation is available to explicit controlled harnesses; prompt-phase fallback remains |
 
-These are independent work items, not an instruction to spawn agents or contact external people. The cancellation feasibility experiment may investigate stop behavior; production inference cancellation remains absent until EP-016 is implemented and verified.
+These are independent work items, not an instruction to spawn agents or contact external people. Automatic task-aware stopping belongs to EP-017; EP-016 exposes only the explicit controlled goal-replacement intervention.
 
 ## Definition of done and handoff
 

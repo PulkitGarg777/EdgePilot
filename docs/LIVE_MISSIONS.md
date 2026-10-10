@@ -1,6 +1,6 @@
 # Guarded missions with the resident model
 
-The existing Qwen3-0.6B Q8_0 model now plans skills for the initial station world. Both policies use the same immutable observations, prompt builder, output schema, independent validator, fallback, and conventional executor. This is simulated task execution. Inference cancellation is not implemented.
+The existing Qwen3-0.6B Q8_0 model now plans skills for the initial station world. Both policies use the same immutable observations, prompt builder, output schema, independent validator, fallback, and conventional executor. This is simulated task execution. The regular resident-server path remains noncancelling; the separate EP-016 owned-session harness supports controlled streaming-generation cancellation.
 
 ## Reproduce on Windows
 
@@ -128,6 +128,6 @@ Six exploratory episodes are retained separately: `033407-fifo-nominal-7eb49a4a`
 
 ## Immediate next work and user input
 
-EP-008 characterization and the EP-009 [related-work review](RELATED_WORK.md) are complete. EP-010 now investigates cancellation feasibility before any production cancellation work. Its result, together with the [overlap assessment](RESEARCH_OVERLAP.md), feeds the EP-011 continue/narrow/pivot decision. No extra hardware, data, installation, or user research is required to start the initial EP-010 interface investigation.
+EP-008 through EP-016 are complete for their bounded development scopes. The [EP-011 decision](RESEARCH_DECISION.md) now advances to EP-017 strong simple baselines. The [EP-016 record](STREAMING_ADAPTER.md) documents the owned finish control, a failed-closed diagnostic cancellation run, and a successful actual-mission cancellation/reuse run. Automatic task-aware policy selection and a candidate policy remain unimplemented.
 
 Before a held-out research evaluation, agree on a target application and acceptable task-success/latency tradeoffs with the user or project supervisor. A fixed delivery date, required demonstration hardware, or faculty rubric would affect prioritization if one exists; none is assumed. Keep the initial station mission until evidence warrants expanding it.

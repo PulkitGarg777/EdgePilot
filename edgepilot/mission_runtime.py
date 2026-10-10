@@ -8,6 +8,7 @@ from typing import Callable
 from .contracts import FailureKind, Policy
 from .robot.contracts import EventKind, NS, WorldEvent, integer
 from .robot.model import ModelRequest, ModelResult, ModelWorker, decode_plan, make_request
+from .robot.relevance import RELEVANCE_SCHEMA, RequestDependencies, classify_relevance
 from .robot.world import World
 from .simulation import SCENARIOS as SCRIPTED_SCENARIOS
 
@@ -24,7 +25,8 @@ class MissionEpisode:
                  emit: Callable[..., None] | None = None, deadline_ns: int = 45*NS,
                  max_tokens: int = 384, model_id: str = "edgepilot", max_requests: int = 24,
                  request_ttl_ns: int | None = None, validation_clock: Callable[[], int] | None = None,
-                 validation_wall_clock: Callable[[], int] | None = None):
+                 validation_wall_clock: Callable[[], int] | None = None,
+                 cancel_on_goal_replacement: bool = False):
         integer(deadline_ns, "episode deadline", 1)
         integer(max_requests, "request budget", 1)
         integer(max_tokens, "output budget", 1)
@@ -52,6 +54,36 @@ class MissionEpisode:
         self.rejected_worker_wall_ns = 0
         self.max_pending = 0
         self.http_times_ns: list[int] = []
+        self.dependencies: dict[str, RequestDependencies] = {}
+        self.relevance_counts: Counter = Counter()
+        self.cancel_on_goal_replacement = cancel_on_goal_replacement
+        if cancel_on_goal_replacement and not callable(getattr(worker, "request_cancel", None)):
+            raise ValueError("Controlled cancellation requires a cancellable worker")
+        self.cancel_candidates: dict[str, tuple[ModelRequest, int, str]] = {}
+        self.cancel_resolved: set[tuple[str, int]] = set()
+        self.cancel_last_attempt_ns: dict[tuple[str, int], int] = {}
+        self.cancel_receipt_counts: Counter = Counter()
+        self.acknowledged_cancellations = 0
+
+    def _record_relevance(self, request: ModelRequest, trigger: str):
+        decision = classify_relevance(self.dependencies[request.request_id], self.world.snapshot())
+        self.relevance_counts[decision.classification.value] += 1
+        self.world.log("request_relevance", trigger=trigger, decision=decision.to_dict())
+        return decision
+
+    def _request_controlled_cancel(self, request: ModelRequest, goal_version: int, reason: str):
+        key = (request.request_id, goal_version)
+        if key in self.cancel_resolved or self.cancel_last_attempt_ns.get(key) == self.world.now_ns:
+            return
+        self.cancel_last_attempt_ns[key] = self.world.now_ns
+        receipt = self.worker.request_cancel(request.request_id, reason, self.world.now_ns)
+        self.cancel_receipt_counts[receipt.kind.value] += 1
+        if receipt.kind.value != "unsupported_phase":
+            self.cancel_resolved.add(key)
+        self.world.log("cancellation_requested", request_id=request.request_id,
+                       request_goal_version=request.snapshot.mission.version,
+                       current_goal_version=self.world.mission.version,
+                       reason=reason, receipt=asdict(receipt))
 
     def _record_goal(self, scheduled_at_ns: int):
         mission = self.world.mission
@@ -67,6 +99,8 @@ class MissionEpisode:
                   "decided_at_ns": self.world.now_ns, "error": error}
         self.terminals.append(record)
         self.world.log("request_terminal", **record)
+        self.dependencies.pop(request.request_id, None)
+        self.cancel_candidates.pop(request.request_id, None)
 
     def _stop(self, reason: str):
         if self.stop_reason:
@@ -95,8 +129,10 @@ class MissionEpisode:
                 self.world.log("pending_replaced", discarded_request_id=replaced.request_id,
                                replacement_request_id=request.request_id)
         self.pending.append(request)
+        self.dependencies[request.request_id] = RequestDependencies(request.request_id, request.snapshot)
         self.max_pending = max(self.max_pending, len(self.pending))
-        self.world.log("request_queued", request=asdict(request), trigger=trigger, pending_count=len(self.pending))
+        self.world.log("request_queued", request=asdict(request), trigger=trigger, pending_count=len(self.pending),
+                       dependencies=self.dependencies[request.request_id].to_dict())
 
     def _consume(self, result: ModelResult):
         request = self.active
@@ -104,6 +140,7 @@ class MissionEpisode:
             raise RuntimeError("Worker result does not match the occupied slot")
         if not request.created_at_ns <= result.started_at_ns <= result.finished_at_ns <= self.world.now_ns:
             raise RuntimeError("Worker returned invalid monotonic timestamps")
+        self._record_relevance(request, "before_response")
         elapsed = result.finished_at_ns-result.started_at_ns
         self.http_times_ns.append(elapsed)
         self.worker_wall_ns += elapsed
@@ -111,6 +148,9 @@ class MissionEpisode:
         error = result.error
         if result.error is not None or result.failure_kind is not None:
             state = "http_timed_out" if result.failure_kind == FailureKind.TIMEOUT else "worker_failed"
+        elif result.termination == "cancelled":
+            state = "cancelled_acknowledged"
+            self.acknowledged_cancellations += 1
         elif self.stop_reason:
             state = self.stop_reason
         elif request.snapshot.mission.version != self.world.mission.version:
@@ -179,6 +219,13 @@ class MissionEpisode:
                 old_availability = {s.name: s.available for s in self.world.stations}
                 self.world.advance(now_ns, (event,), complete_skills=False)
                 self.event_index += 1
+                for request in ([self.active] if self.active else []) + list(self.pending):
+                    decision = self._record_relevance(request, event.kind.value)
+                    if (self.cancel_on_goal_replacement and request is self.active and
+                            event.kind == EventKind.GOAL and
+                            decision.classification.value == "invalidating"):
+                        self.cancel_candidates[request.request_id] = (
+                            request, self.world.mission.version, "goal_replaced")
                 if event.kind == EventKind.GOAL:
                     previous = self.goal_metrics[old_goal]
                     previous["superseded_at_ns"] = now_ns
@@ -199,6 +246,10 @@ class MissionEpisode:
             result = self.worker.poll(now_ns)
             if result is not None:
                 self._consume(result)
+        if not self.stop_reason and self.active:
+            candidate = self.cancel_candidates.get(self.active.request_id)
+            if candidate is not None:
+                self._request_controlled_cancel(*candidate)
         if not self.stop_reason:
             outstanding = ([self.active] if self.active else []) + list(self.pending)
             if self.world.ready_for_plan() and not any(
@@ -250,6 +301,11 @@ class MissionEpisode:
             "max_observation_gap_ns": max((b-a for a,b in zip(self.observation_times, self.observation_times[1:])), default=None),
             "worker_wall_ns": self.worker_wall_ns, "rejected_worker_wall_ns": self.rejected_worker_wall_ns,
             "http_elapsed_ns": self.http_times_ns, "unprocessed_events": len(self.events)-self.event_index,
+            "relevance_schema": RELEVANCE_SCHEMA, "relevance_decision_counts": dict(self.relevance_counts),
+            "controlled_cancellation_enabled": self.cancel_on_goal_replacement,
+            "cancellation_receipt_counts": dict(self.cancel_receipt_counts),
+            "acknowledged_cancellations": self.acknowledged_cancellations,
             "note": "Accepted plan latency is separate from completed-mission success. Superseded goals have null latency. "
-                    "Rejected HTTP wall time is a proxy, not GPU compute or energy. No inference cancellation.",
+                    "Rejected HTTP wall time is a proxy, not GPU compute or energy. Controlled cancellation is "
+                    "counted only after the worker reports an acknowledged cancelled terminal.",
         }

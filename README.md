@@ -1,10 +1,21 @@
 # EdgePilot scheduling pilot
 
-EdgePilot contains the verified wait-only scheduling pilot and a headless robot world with scripted or resident-model planning and guarded skills. The original `runtime_probe_v1` is preserved. Development uses the existing Windows Python environment on D:. Live planning uses the resident llama.cpp server; the scripted simulator does not require it. Inference cancellation and physical robot control are not implemented.
+EdgePilot contains the verified wait-only scheduling pilot and a headless robot world with scripted or resident-model planning and guarded skills. The original `runtime_probe_v1` is preserved. Development uses the existing Windows Python environment on D:. Live planning uses llama.cpp; the scripted simulator does not require it. An explicit owned-session harness supports acknowledged streaming-generation cancellation on the pinned runtime. Physical robot control is not implemented.
 
 ## Project progress
 
-The [whole-project task tracker](docs/TASKS.md) reconciles the original [Word plan](EdgePilot_RT_Plan_of_Action.docx) with implemented code and measured evidence. The [milestone checklist](docs/NEXT_STEPS.md) records the completed scene, request provenance, guarded execution, and resident-model integration. The [decision log](docs/DECISIONS.md), [build log](docs/BUILD_LOG.md), and [changelog](CHANGELOG.md) record scope, progress, and versions. Cancellation and the broader research evaluation remain open and depend on an explicit feasibility decision.
+The [whole-project task tracker](docs/TASKS.md) reconciles the original [Word plan](EdgePilot_RT_Plan_of_Action.docx) with implemented code and measured evidence. The [milestone checklist](docs/NEXT_STEPS.md) records the completed scene, request provenance, guarded execution, relevance contract, and acknowledged streaming adapter. EP-016 is complete for its controlled generation-phase scope; EP-017 strong simple baselines are next. The [decision log](docs/DECISIONS.md), [build log](docs/BUILD_LOG.md), and [changelog](CHANGELOG.md) record scope, progress, and versions.
+
+## Run the owned streaming controls
+
+These commands refuse to adopt an existing `llama-server`, launch the pinned local binary with one slot and fresh logs, verify process/endpoint/model identity, and terminate only that owned process:
+
+```powershell
+.\.venv\Scripts\python.exe -m edgepilot.streaming_mission --arm finish --scenario nominal
+.\.venv\Scripts\python.exe -m edgepilot.streaming_mission --arm cancel-goal-replacement --scenario goal-replacement --policy newest-pending
+```
+
+The cancellation arm retries an explicit goal-replacement decision while prompt processing remains unconfirmed, disconnects only after observed generation, and admits replacement work only after matching cancel/release evidence plus a fresh idle query and completed trace. See [the EP-016 record](docs/STREAMING_ADAPTER.md). The regular `edgepilot.mission` and older wait-only paths remain noncancelling.
 
 ## Run real-model robot missions
 
@@ -118,4 +129,4 @@ The scheduler tests use an explicit virtual clock and controllable fake worker. 
 
 `edgepilot/contracts.py` defines typed immutable messages and terminal enums; `scenarios.py` holds finite scripts; `scheduler.py` owns policy/state decisions; `http_worker.py` owns the single HTTP worker; `validation.py` reuses the probe validator; `__main__.py` records inventory and runs episodes; `compare.py` reads paired traces. Tests live under `tests/`. The workspace initially had no Git repository; local version tracking now uses the `main` branch. `.gitignore` excludes environments, models, runtime binaries, caches, logs/runs, archives, and common secret files. Existing work was preserved.
 
-The wait-only pilot does not establish robot task success. The separate `edgepilot.mission_runtime` now connects `edgepilot.robot.model` to the guarded world and reports simulated mission outcomes; `edgepilot.mission_compare` compares its traces. Physical safety, energy savings, publication novelty, and a measured server-side cancellation acknowledgement protocol remain unestablished.
+The wait-only pilot does not establish robot task success. The separate `edgepilot.mission_runtime` now connects `edgepilot.robot.model` to the guarded world and reports simulated mission outcomes; `edgepilot.mission_compare` compares its traces. The isolated [EP-010 probe](docs/CANCELLATION_PROBE_PLAN.md) established streaming-generation cancellation feasibility on the pinned runtime; production integration and prompt-phase acknowledgement remain open. Physical safety, energy savings, and publication novelty remain unestablished.

@@ -11,6 +11,7 @@ from edgepilot.robot.contracts import EventKind, HOME, NS, WorldEvent
 from edgepilot.robot.model import ModelResult, decode_plan, make_request, payload_for
 from edgepilot.robot.planner import scripted_plan
 from edgepilot.robot.world import World
+from edgepilot.streaming_contracts import StopReceipt, StopReceiptKind
 
 
 def reply(actions, finish="stop"):
@@ -44,6 +45,35 @@ class FakeModel:
     def close(self):
         assert self.active is None
         self.closed = True
+
+
+class CancellableFakeModel(FakeModel):
+    def __init__(self, duration_ns=2*NS, *, acknowledge=True):
+        super().__init__(duration_ns)
+        self.acknowledge = acknowledge
+        self.cancelled = None
+        self.cancel_calls = []
+
+    def request_cancel(self, request_id, reason, now_ns):
+        self.cancel_calls.append((request_id, reason, now_ns))
+        if self.active is None or request_id != self.active.request_id:
+            return StopReceipt(request_id, StopReceiptKind.WRONG_REQUEST, now_ns, reason)
+        if not self.acknowledge:
+            return StopReceipt(request_id, StopReceiptKind.UNSUPPORTED_PHASE, now_ns,
+                               "generation_not_confirmed")
+        self.cancelled = (request_id, now_ns)
+        return StopReceipt(request_id, StopReceiptKind.RECORDED, now_ns, reason)
+
+    def poll(self, now_ns):
+        if self.cancelled is not None and now_ns > self.cancelled[1]:
+            request = self.active
+            self.active = None
+            self.cancelled = None
+            return ModelResult(request.request_id, self.started, now_ns,
+                               termination="cancelled", terminal_observed_at_ns=now_ns,
+                               occupied_ns=now_ns-self.started, session_id="fake-session",
+                               server_task_id=7)
+        return super().poll(now_ns)
 
 
 def run(policy=Policy.FIFO, scenario="nominal", worker=None, **kwargs):
@@ -111,6 +141,39 @@ def test_scene_events_and_observations_continue_during_inference(policy):
     assert episode.world.outcome == "succeeded"
 
 
+def test_runtime_logs_declared_dependencies_and_harmless_telemetry_before_response():
+    episode, _, log = run(Policy.FIFO, "irrelevant", worker=FakeModel(2*NS))
+    queued = next(e for e in log if e["event"] == "request_queued")
+    assert queued["dependencies"]["relevance_schema"] == "edgepilot.relevance.v1"
+    assert queued["dependencies"]["source_snapshot_id"] == queued["request"]["snapshot"]["snapshot_id"]
+    relevance = [e for e in log if e["event"] == "request_relevance"]
+    assert [e["decision"]["classification"] for e in relevance[:2]] == ["harmless", "harmless"]
+    before_response = next(i for i, e in enumerate(log)
+                           if e["event"] == "request_relevance" and e["trigger"] == "before_response")
+    model_response = next(i for i, e in enumerate(log) if e["event"] == "model_response")
+    assert before_response < model_response
+    assert episode.summary()["relevance_decision_counts"]["harmless"] == len(relevance)
+
+
+def test_runtime_records_invalidating_required_state_change_without_bypassing_guardrails():
+    episode, _, log = run(Policy.FIFO, "station-unavailable", worker=FakeModel(NS))
+    decisions = [e["decision"] for e in log if e["event"] == "request_relevance"]
+    assert any(d["classification"] == "invalidating" and
+               any(item["reason"] == "required_station_unavailable" for item in d["evidence"])
+               for d in decisions)
+    assert episode.summary()["terminal_counts"].get("rejected_precondition_failed") == 1
+
+
+def test_runtime_records_goal_replacement_as_invalidating_before_old_result_finishes():
+    episode, _, log = run(Policy.NEWEST_PENDING, "goal-burst", worker=FakeModel(2*NS))
+    goal_decisions = [e for e in log if e["event"] == "request_relevance"
+                      and e["trigger"] == "goal_replaced"]
+    assert goal_decisions
+    assert all(e["decision"]["classification"] == "invalidating" for e in goal_decisions
+               if e["decision"]["source_goal_version"] != e["decision"]["current_goal_version"])
+    assert episode.summary()["terminal_counts"]["rejected_stale_goal"] == 1
+
+
 @pytest.mark.parametrize("policy", list(Policy))
 def test_station_change_before_response_rejects_invalid_plan_then_recovers(policy):
     episode, _, log = run(policy, "station-unavailable", worker=FakeModel(NS))
@@ -126,6 +189,56 @@ def test_goal_change_during_execution_stops_old_skill_and_completes_new_mission(
     assert episode.world.actions_stopped == 1
     assert episode.world.inspected == {"station_b"}
     assert [m["outcome"] for m in episode.world.mission_records] == ["superseded", "succeeded"]
+
+
+def test_controlled_goal_replacement_waits_for_acknowledgement_then_reuses_worker():
+    worker = CancellableFakeModel()
+    episode, worker, log = run(Policy.NEWEST_PENDING, "goal-replacement", worker=worker,
+                               cancel_on_goal_replacement=True)
+    assert episode.world.outcome == "succeeded"
+    assert len(worker.cancel_calls) == 1
+    request_id, reason, requested_at = worker.cancel_calls[0]
+    assert request_id == "model-0001" and reason == "goal_replaced" and requested_at == 7*NS//10
+    assert [request.snapshot.mission.version for request in worker.submitted] == [1, 2]
+    summary = episode.summary()
+    assert summary["terminal_counts"]["cancelled_acknowledged"] == 1
+    assert summary["acknowledged_cancellations"] == 1
+    assert summary["cancellation_receipt_counts"] == {"recorded": 1}
+    cancel_event = next(e for e in log if e["event"] == "cancellation_requested")
+    terminal_event = next(e for e in log if e["event"] == "request_terminal" and
+                          e["state"] == "cancelled_acknowledged")
+    second_dispatch = next(e for e in log if e["event"] == "request_dispatched" and
+                           e["request_id"] == "model-0002")
+    assert cancel_event["at_ns"] < terminal_event["at_ns"] <= second_dispatch["at_ns"]
+
+
+def test_same_step_natural_completion_is_consumed_before_controlled_stop():
+    worker = CancellableFakeModel(duration_ns=7*NS//10)
+    episode, worker, _ = run(Policy.NEWEST_PENDING, "goal-replacement", worker=worker,
+                             cancel_on_goal_replacement=True)
+    assert worker.cancel_calls == []
+    assert episode.summary()["terminal_counts"]["rejected_stale_goal"] == 1
+    assert episode.summary()["acknowledged_cancellations"] == 0
+
+
+def test_unsupported_phase_is_reconsidered_without_being_reported_as_cancellation():
+    worker = CancellableFakeModel(acknowledge=False)
+    episode, worker, _ = run(Policy.NEWEST_PENDING, "goal-replacement", worker=worker,
+                             cancel_on_goal_replacement=True)
+    assert len(worker.cancel_calls) > 1
+    assert {request_id for request_id, _, _ in worker.cancel_calls} == {"model-0001"}
+    assert episode.summary()["cancellation_receipt_counts"] == {
+        "unsupported_phase": len(worker.cancel_calls)}
+    assert episode.summary()["acknowledged_cancellations"] == 0
+    assert episode.summary()["terminal_counts"]["rejected_stale_goal"] == 1
+
+
+def test_controlled_cancellation_is_opt_in_and_requires_capable_worker():
+    episode, worker, _ = run(Policy.NEWEST_PENDING, "goal-replacement", worker=FakeModel(2*NS))
+    assert episode.summary()["controlled_cancellation_enabled"] is False
+    assert episode.summary()["terminal_counts"]["rejected_stale_goal"] == 1
+    with pytest.raises(ValueError, match="cancellable worker"):
+        MissionEpisode(Policy.NEWEST_PENDING, FakeModel(), cancel_on_goal_replacement=True)
 
 
 def test_all_due_updates_precede_inspection_completion_in_same_step():

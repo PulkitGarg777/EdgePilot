@@ -61,3 +61,17 @@
 - Final batch `runs/cancellation-trials-20260930-125525-12c1ac56`: 32/32 target trials recorded, all 16 finish/disconnect pairs included, no failures or censoring, and correct distinct-task reuse after every trial. Streaming cancellation was verified in 8/8 disconnect trials; median observed stop-to-release was 46 ms at the 64-token cutpoint and 35 ms at 256 tokens. Paired avoided remaining time medians were 3.701 s and 2.168 s respectively.
 - Non-streaming disconnect cancelled 0/8 requests. All continued naturally to the 512-token limit; paired avoided-time medians were -0.024 s and -0.025 s, consistent with no useful cancellation. Report regeneration was byte/hash stable; 32 focused offline tests passed.
 - EP-010 is complete as a phase- and transport-specific feasibility result. Prompt-phase compute acknowledgement, arbitrary kernel preemption, production integration, energy, and general tail behavior remain unestablished. The final report explicitly records that the trial manifest omitted the exact runner-source hash; same-process calibration pins the server binary, implementation DLL, and model. Next: EP-011.
+
+## 1 October 2026 - Research feasibility decision
+
+- Completed the [EP-011 memo](RESEARCH_DECISION.md) using recorded mission characterization, the bounded overlap assessment, and the cancellation report. Decision: narrow and continue through EP-015 to EP-017; candidate implementation and freezing retain separate evidence gates.
+- Documented permitted scope, synthetic-versus-mission measurement limits, source/trace availability gaps, baseline requirements, pivot conditions, and faculty feedback questions. Synchronized the roadmap, README, changelog, and current handoff sections. EP-015 is next.
+- Documentation-only change: reviewed the cited measurements against existing reports and checked Markdown links and patch whitespace. No new runtime experiments or software tests were required.
+
+## 10 October 2026 - Acknowledged streaming mission adapter
+
+- Implemented EP-016 contracts, strict SSE reconstruction, task/log/slot monitoring, a pure terminal-evidence reducer, acknowledged worker reuse, and opt-in mission cancellation after goal replacement. Existing FIFO/newest-pending defaults remain unchanged.
+- Added an exclusively owned llama.cpp session launcher with an atomic run lock, fresh logs, PID/create-time/listener binding, exact executable/model checks, health/props/single-idle-slot validation, start/finish artifact hashes, and owned-process cleanup.
+- The live finish control completed the nominal mission naturally. The first cancellation control failed closed on a log offset-boundary defect and dispatched no replacement; the retained trace led to a focused regression fix.
+- The corrected run `runs/streaming-mission-20261010-162820-cancel-goal-replacement-goal-replacement-e4f1336b` recorded 209 unsupported prompt-phase decisions, one generation-phase stop, matching task 1 cancellation/release, fresh idle, and distinct task 233 reuse. The cancelled terminal was observed about 59.9 ms after recorded stop intent; the replacement plan completed naturally and the mission succeeded.
+- This establishes the controlled pinned-runtime mechanism, not an automatic policy, prompt-phase cancellation, energy savings, arbitrary kernel preemption, or general benefit. EP-017 baseline comparisons are next.
